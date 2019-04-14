@@ -1,42 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>GitNoteUi</class>
+ <widget class="QMainWindow" name="GitNoteUi">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
-    <height>756</height>
+    <width>1028</width>
+    <height>873</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-    <horstretch>0</horstretch>
-    <verstretch>1</verstretch>
-   </sizepolicy>
-  </property>
   <property name="windowTitle">
-   <string>GitNote</string>
+   <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTreeView" name="treeView_motes">
+   <widget class="QTreeView" name="treeView_Notes">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>171</width>
-      <height>731</height>
+      <width>250</width>
+      <height>1020</height>
      </rect>
     </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-      <horstretch>0</horstretch>
-      <verstretch>1</verstretch>
-     </sizepolicy>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
     </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textEdit_Note">
+    <property name="geometry">
+     <rect>
+      <x>253</x>
+      <y>0</y>
+      <width>1660</width>
+      <height>1020</height>
+     </rect>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
     </property>
    </widget>
   </widget>
@@ -45,16 +52,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1041</width>
+     <width>1028</width>
      <height>28</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_sync">
+   <widget class="QMenu" name="menu_update">
     <property name="title">
-     <string>同步</string>
+     <string>更新</string>
     </property>
    </widget>
-   <addaction name="menu_sync"/>
+   <addaction name="menu_update"/>
   </widget>
  </widget>
  <resources/>

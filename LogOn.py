@@ -3,8 +3,8 @@
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QLineEdit
 from LogOnUi import *
-import main
-import git
+import main, FileAll, GitNote
+import os, git
 
 class LogOn(QWidget, Ui_LogOn):
     def __init__(self, parent=None):
@@ -30,4 +30,7 @@ class LogOn(QWidget, Ui_LogOn):
         main.userName = self.lineEdit_userName.text()
         main.password = self.lineEdit_password.text()
         main.gitUrl = self.lineEdit_gitUrl.text()
+        FileAll.storeConfig()
         self.close()
+        main.setGitEnv()
+        main.myGitNote = GitNote.GitNote()
