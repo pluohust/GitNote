@@ -5,7 +5,7 @@
 安装必要环境
 ```
 sudo apt install python3-pip
-pip3 install pyqt5 gitpython
+pip3 install pyqt5 gitpython markdown2
 ```
 
 ### 现在已完成基本功能，包括
