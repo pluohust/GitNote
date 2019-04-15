@@ -6,6 +6,9 @@ import git
 from PyQt5.QtWidgets import QApplication
 import Init, GitNote
 
+gitNoteHome = ""
+gitNoteNoteHome = ""
+
 userName = ""
 password = ""
 gitUrl = ""
