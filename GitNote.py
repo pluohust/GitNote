@@ -59,29 +59,39 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         pBack.setColor(self.backgroundRole(), QColor(79, 79, 79))
         self.setPalette(pBack)
         self.listfileDir = ""
+        self.viewfileName = ""
         self.plainTextEdit_markdown.hide()
         self.saveStatus = False
         self.pushButton_save.clicked.connect(self.clickedButtonSave)
+        self.plainTextEdit_markdown.textChanged.connect(self.textChangedEdit)
     
     def clickedListView(self, qmodelindex):
         item = self.listWidget_list.currentItem()
         itemCount = item.text()
         filename = (itemCount.split("\n"))[0]
-        filepath = os.path.join(self.listfileDir, filename)
-        tmpf = open(filepath, "r")
-        tmplines = tmpf.read()
+        self.viewfileName = os.path.join(self.listfileDir, filename)
+        tmpf = open(self.viewfileName, "r")
+        self.viewTexts = tmpf.read()
         tmpf.close()
-        self.textEdit_show.setText(markdown2.markdown(tmplines))
+        self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
+
+    def textChangedEdit(self):
+        self.viewTexts = self.plainTextEdit_markdown.toPlainText()
+        self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
     
     def clickedButtonSave(self):
         if not self.saveStatus:
             self.saveStatus = True
+            self.plainTextEdit_markdown.setPlainText(self.viewTexts)
             self.plainTextEdit_markdown.show()
             self.pushButton_save.setText("保存")
         else:
             self.saveStatus = False
             self.plainTextEdit_markdown.hide()
             self.pushButton_save.setText("编辑")
+            tmpf = open(self.viewfileName, "w")
+            tmpf.write(self.viewTexts)
+            tmpf.close()
     
     def updateUiAfterShow(self):
         self.treeWidget_tree.setColumnWidth(0,100)
