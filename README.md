@@ -8,3 +8,18 @@ sudo apt install python3-pip
 pip3 install pyqt5 gitpython
 ```
 
+### 现在已完成基本功能，包括
+	- 克隆
+	- 更新，包括自动pull和push
+	- markdown查看和编辑
+
+### 其他功能开发中...
+
+以下是一些现有功能截图
+![](pictures/gitnote-1.png)
+
+![](pictures/gitnote-2.png)
+
+![](pictures/gitnote-3.png)
+
+![](pictures/gitnote-4.png)
