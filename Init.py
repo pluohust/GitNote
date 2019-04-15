@@ -14,7 +14,7 @@ class Init:
             os.makedirs("/home/"+getpass.getuser()+"/.GitNote/Notes")
             print("No .GitNOte")
         if not os.path.exists("/home/"+getpass.getuser()+"/.GitNote/Notes"):
-            self.exist = False
+            main.gitExist = False
             os.makedirs("/home/"+getpass.getuser()+"/.GitNote/Notes")
             print("No Notes")
         if not os.path.exists("/home/"+getpass.getuser()+"/.GitNote/config"):
