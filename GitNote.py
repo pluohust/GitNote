@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor
 from PyQt5.QtCore import Qt
 import GitNoteUi
@@ -46,6 +46,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.addTopDirs()
         self.treeWidget_tree.expandAll()
         self.treeWidget_tree.clicked.connect(self.onTreeClicked)
+        self.menu = QMenu()
+        self.menu.addAction("新建笔记", self.menuCreateNote)
+        self.menu.addAction("新建文件夹")
+        self.menu.addAction("删除文件夹")
+        self.treeWidget_tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.treeWidget_tree.customContextMenuRequested.connect(self.menuContextClicked)
         self.listWidget_list.setStyleSheet(
         "QListWidget::item { border-bottom: 0.5px dotted blue; margin-bottom:10px;}"
         "QListWidget::item:!selected{}"  
@@ -58,40 +64,86 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         pBack = self.palette()
         pBack.setColor(self.backgroundRole(), QColor(79, 79, 79))
         self.setPalette(pBack)
-        self.listfileDir = ""
+        self.listfileDir = main.gitNoteNoteHome
         self.viewfileName = ""
         self.plainTextEdit_markdown.hide()
         self.saveStatus = False
+        self.createStatus = False
         self.pushButton_save.clicked.connect(self.clickedButtonSave)
         self.plainTextEdit_markdown.textChanged.connect(self.textChangedEdit)
+        self.pushButton_create.clicked.connect(self.createNote)
+        self.pushButton_create.hide()
+        self.updateListView(self.listfileDir)
+    
+    def menuCreateNote(self):
+        #item = self.listWidget_list.currentItem()
+        #self.listfileDir = item.text(1)
+        #self.createNote()
+        pass
+
+    def createNote(self):
+        if self.saveStatus:
+            self.saveNote()
+        self.saveStatus = True
+        self.pushButton_save.setText("保存")
+        self.createStatus = True
+        self.lineEdit_title.setReadOnly(False)
+        self.lineEdit_title.clear()
+        self.plainTextEdit_markdown.clear()
+        self.plainTextEdit_markdown.show()
+        self.textEdit_show.clear()
     
     def clickedListView(self, qmodelindex):
+        if self.saveStatus or self.createStatus:
+            self.saveNote()
         item = self.listWidget_list.currentItem()
         itemCount = item.text()
         filename = (itemCount.split("\n"))[0]
         self.viewfileName = os.path.join(self.listfileDir, filename)
+        self.lineEdit_title.setText(os.path.splitext(filename)[0])
         tmpf = open(self.viewfileName, "r")
         self.viewTexts = tmpf.read()
         tmpf.close()
         self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
 
+    def menuContextClicked(self, pos):
+        #node = self.treeWidget_tree.mapToGlobal(pos)
+        self.menu.exec_(self.treeWidget_tree.mapToGlobal(pos))
+        
     def textChangedEdit(self):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
         self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
     
     def clickedButtonSave(self):
         if not self.saveStatus:
-            self.saveStatus = True
-            self.plainTextEdit_markdown.setPlainText(self.viewTexts)
-            self.plainTextEdit_markdown.show()
-            self.pushButton_save.setText("保存")
+            if len(self.viewfileName) > 1:
+                self.saveStatus = True
+                self.plainTextEdit_markdown.setPlainText(self.viewTexts)
+                self.plainTextEdit_markdown.show()
+                self.pushButton_save.setText("保存")
         else:
-            self.saveStatus = False
-            self.plainTextEdit_markdown.hide()
-            self.pushButton_save.setText("编辑")
+            self.saveNote()
+    
+    def saveNote(self):
+        if self.createStatus:
+            self.viewfileName = os.path.join(self.listfileDir, self.lineEdit_title.text().strip())
+            self.lineEdit_title.setReadOnly(True)
+        self.saveStatus = False
+        self.plainTextEdit_markdown.hide()
+        self.pushButton_save.setText("编辑")
+        self.lineEdit_title.setReadOnly(True)
+        if len(self.viewfileName) > 1:
             tmpf = open(self.viewfileName, "w")
             tmpf.write(self.viewTexts)
             tmpf.close()
+            self.updateListView(self.listfileDir)
+            #self.treeWidget_tree.clear()
+            #self.updateTreeItemName()
+        if self.createStatus:
+            self.createStatus = False
+            self.treeWidget_tree.clear()
+            self.addTopDirs()
+            self.treeWidget_tree.expandAll()
     
     def updateUiAfterShow(self):
         self.treeWidget_tree.setColumnWidth(0,100)
@@ -118,7 +170,11 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             eachone_d = os.path.join(main.gitNoteNoteHome, eachone)
             if os.path.isdir(eachone_d) and eachone[0] != '.':
                 item = QTreeWidgetItem(self.treeWidget_tree)
-                item.setText(0, eachone)
+                countMd = self.countMdFiles(eachone_d)
+                dirName = eachone
+                if countMd > 0:
+                    dirName = eachone + " (" + str(countMd) + ")"
+                item.setText(0, dirName)
                 item.setText(1, eachone_d)
                 item.setIcon(0, self.dirIcon)
                 self.showDirs(eachone_d, item)
@@ -138,6 +194,14 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 childitem.setIcon(0, self.dirIcon)
                 self.showDirs(eachone_d, childitem)
     
+    def updateTreeItemName(self):
+        baseName = self.treeItem.text(0).split('(')[0]
+        countMd = self.countMdFiles(self.treeItem.text(1))
+        dirName = baseName
+        if countMd > 0:
+            dirName = dirName + " (" + str(countMd) + ")"
+        self.treeItem.setText(0, dirName)
+    
     def countMdFiles(self, filepath):
         files = os.listdir(filepath)
         number = 0
@@ -148,13 +212,17 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         return number
     
     def onTreeClicked(self, qmodelindex):
-        item = self.treeWidget_tree.currentItem()
-        if item.text(1) != self.listfileDir:
-            self.listfileDir = item.text(1)
-            self.listWidget_list.clear()
-            self.fileList = self.traverseDir(item.text(1))
-            for eachone in self.fileList:
-                self.listWidget_list.addItem(eachone[0])
+        self.pushButton_create.show()
+        self.treeItem = self.treeWidget_tree.currentItem()
+        if self.treeItem.text(1) != self.listfileDir:
+            self.listfileDir = self.treeItem.text(1)
+            self.updateListView(self.listfileDir)
+    
+    def updateListView(self, fileDir):
+        self.listWidget_list.clear()
+        self.fileList = self.traverseDir(fileDir)
+        for eachone in self.fileList:
+            self.listWidget_list.addItem(eachone[0])
     
     def traverseDir(self, filepath):
         files = os.listdir(filepath)
