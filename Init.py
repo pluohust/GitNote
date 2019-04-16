@@ -4,12 +4,13 @@
 import sys, os, getpass
 import LogOn
 import main, FileAll, GitNote
+import pathlib
 
 class Init:
     def __init__(self):
         self.exist = True
-        main.gitNoteHome = "/home/"+getpass.getuser()+"/.GitNote"
-        main.gitNoteNoteHome = "/home/"+getpass.getuser()+"/.GitNote/Notes"
+        main.gitNoteHome = os.path.join(str(pathlib.Path.home()), ".GitNote")
+        main.gitNoteNoteHome = os.path.join(main.gitNoteHome, "Notes")
         if not os.path.exists(main.gitNoteHome):
             self.exist = False
             os.makedirs(main.gitNoteHome)

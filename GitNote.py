@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor
 from PyQt5.QtCore import Qt
 import GitNoteUi
 import main
 import git
-import os, getpass, threading, time, operator
+import os, getpass, threading, time, operator, shutil
 import markdown2
 
 def runClone():
@@ -44,13 +44,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_update.clicked.connect(self.myupdateGit)
         self.dirIcon = QIcon("dir.ico")
         self.addTopDirs()
-        self.treeWidget_tree.expandAll()
         self.treeWidget_tree.clicked.connect(self.onTreeClicked)
-        self.menu = QMenu()
-        self.menu.addAction("新建笔记", self.menuCreateNote)
-        self.menu.addAction("新建文件夹")
-        self.menu.addAction("删除文件夹")
-        self.treeWidget_tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget_tree.customContextMenuRequested.connect(self.menuContextClicked)
         self.listWidget_list.setStyleSheet(
         "QListWidget::item { border-bottom: 0.5px dotted blue; margin-bottom:10px;}"
@@ -72,8 +66,69 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_save.clicked.connect(self.clickedButtonSave)
         self.plainTextEdit_markdown.textChanged.connect(self.textChangedEdit)
         self.pushButton_create.clicked.connect(self.createNote)
-        self.pushButton_create.hide()
+        self.pushButton_create.setEnabled(False)
+        self.pushButton_createdir.setEnabled(False)
+        self.pushButton_delete.setEnabled(False)
+        self.pushButton_deletedir.setEnabled(False)
+        self.pushButton_save.setEnabled(False)
         self.updateListView(self.listfileDir)
+        self.newDirName = ""
+        self.pushButton_createdir.clicked.connect(self.createDir)
+        self.pushButton_createroot.clicked.connect(self.createRootDir)
+        self.pushButton_delete.clicked.connect(self.deleteNote)
+        self.pushButton_deletedir.clicked.connect(self.deleteDir)
+    
+    def deleteDir(self):
+        countNotes = 0
+        for dirpath, dirnames, filenames in os.walk(self.listfileDir):
+            for eachone in filenames:
+                if os.path.splitext(eachone)[1] == ".md":
+                    countNotes = countNotes + 1
+        replay = QMessageBox.warning(self, "警告", "文件夹 " + os.path.basename(os.path.normpath(self.listfileDir)) + "下有" + str(countNotes) + "篇笔记，您确定要删除吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
+        if replay == QMessageBox.Yes and os.path.exists(self.listfileDir):
+            shutil.rmtree(self.listfileDir)
+            self.listfileDir = main.gitNoteNoteHome
+            self.addTopDirs()
+            self.listWidget_list.clear()
+            self.pushButton_create.setEnabled(False)
+            self.pushButton_createdir.setEnabled(False)
+            self.pushButton_delete.setEnabled(False)
+            self.pushButton_deletedir.setEnabled(False)
+            self.pushButton_save.setEnabled(False)
+    
+    def deleteNote(self):
+        if not os.path.exists(self.viewfileName):
+            return
+        basename = os.path.basename(self.viewfileName)
+        realname = os.path.splitext(basename)[0]
+        replay = QMessageBox.warning(self, "警告", "您确定要删除笔记 "+realname+" 吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
+        if replay == QMessageBox.Yes:
+            os.remove(self.viewfileName)
+            self.viewfileName = ""
+            self.addTopDirs()
+            if os.path.exists(self.listfileDir):
+                self.updateListView(self.listfileDir)
+            self.pushButton_delete.setEnabled(False)
+            self.pushButton_save.setEnabled(False)
+            self.lineEdit_title.clear()
+            self.plainTextEdit_markdown.clear()
+            self.textEdit_show.clear()
+    
+    def createRootDir(self):
+        newDirName, ok = QInputDialog.getText(self, "创建新文件夹", "文件夹名")
+        if len(newDirName) > 0:
+            newWholeDirName = os.path.join(main.gitNoteNoteHome, newDirName)
+            if not os.path.exists(newWholeDirName):
+                os.mkdir(newWholeDirName)
+                self.addTopDirs()
+
+    def createDir(self):
+        newDirName, ok = QInputDialog.getText(self, "创建新文件夹", "文件夹名")
+        if len(newDirName) > 0:
+            newWholeDirName = os.path.join(self.listfileDir, newDirName)
+            if not os.path.exists(newWholeDirName):
+                os.mkdir(newWholeDirName)
+                self.addTopDirs()
     
     def menuCreateNote(self):
         #item = self.listWidget_list.currentItem()
@@ -86,6 +141,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.saveNote()
         self.saveStatus = True
         self.pushButton_save.setText("保存")
+        self.pushButton_save.setEnabled(True)
         self.createStatus = True
         self.lineEdit_title.setReadOnly(False)
         self.lineEdit_title.clear()
@@ -99,7 +155,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         item = self.listWidget_list.currentItem()
         itemCount = item.text()
         filename = (itemCount.split("\n"))[0]
+        self.pushButton_delete.setEnabled(True)
+        self.pushButton_deletedir.setEnabled(False)
+        self.pushButton_save.setEnabled(True)
         self.viewfileName = os.path.join(self.listfileDir, filename)
+        if self.viewfileName[-3:] != ".md":
+            self.viewfileName = self.viewfileName + ".md"
         self.lineEdit_title.setText(os.path.splitext(filename)[0])
         tmpf = open(self.viewfileName, "r")
         self.viewTexts = tmpf.read()
@@ -107,8 +168,13 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
 
     def menuContextClicked(self, pos):
-        #node = self.treeWidget_tree.mapToGlobal(pos)
-        self.menu.exec_(self.treeWidget_tree.mapToGlobal(pos))
+        item = self.listWidget_list.itemAt(pos)
+        if item:
+            self.treemenu = QMenu()
+            self.treemenu.addAction("新建笔记", self.menuCreateNote)
+            self.treemenu.addAction("新建文件夹")
+            self.treemenu.addAction("删除文件夹")
+            self.treemenu.exec_(self.treeWidget_tree.mapToGlobal(pos))
         
     def textChangedEdit(self):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
@@ -128,6 +194,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if self.createStatus:
             self.viewfileName = os.path.join(self.listfileDir, self.lineEdit_title.text().strip())
             self.lineEdit_title.setReadOnly(True)
+            if self.viewfileName[-3:] != ".md":
+                self.viewfileName = self.viewfileName + ".md"
         self.saveStatus = False
         self.plainTextEdit_markdown.hide()
         self.pushButton_save.setText("编辑")
@@ -141,9 +209,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             #self.updateTreeItemName()
         if self.createStatus:
             self.createStatus = False
-            self.treeWidget_tree.clear()
             self.addTopDirs()
-            self.treeWidget_tree.expandAll()
     
     def updateUiAfterShow(self):
         self.treeWidget_tree.setColumnWidth(0,100)
@@ -165,6 +231,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_update.setText("更新中")
 
     def addTopDirs(self):
+        self.treeWidget_tree.clear()
         files = os.listdir(main.gitNoteNoteHome)
         for eachone in files:
             eachone_d = os.path.join(main.gitNoteNoteHome, eachone)
@@ -178,6 +245,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 item.setText(1, eachone_d)
                 item.setIcon(0, self.dirIcon)
                 self.showDirs(eachone_d, item)
+        self.treeWidget_tree.expandAll()
 
     def showDirs(self, filepath, item):
         files = os.listdir(filepath)
@@ -212,7 +280,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         return number
     
     def onTreeClicked(self, qmodelindex):
-        self.pushButton_create.show()
+        self.pushButton_create.setEnabled(True)
+        self.pushButton_createdir.setEnabled(True)
+        self.pushButton_delete.setEnabled(False)
+        self.pushButton_deletedir.setEnabled(True)
         self.treeItem = self.treeWidget_tree.currentItem()
         if self.treeItem.text(1) != self.listfileDir:
             self.listfileDir = self.treeItem.text(1)
@@ -220,6 +291,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     
     def updateListView(self, fileDir):
         self.listWidget_list.clear()
+        if fileDir == main.gitNoteNoteHome:
+            return
         self.fileList = self.traverseDir(fileDir)
         for eachone in self.fileList:
             self.listWidget_list.addItem(eachone[0])
@@ -231,7 +304,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             eachone_d = os.path.join(filepath, eachone)
             if not os.path.isdir(eachone_d) and eachone_d[-3:] == ".md":
                 tmpfileinfo = []
-                tmpfileinfo.append(eachone + "\n" + self.read20words(eachone_d))
+                tmpfileinfo.append(eachone[:-3] + "\n" + self.read20words(eachone_d))
                 tmpfileinfo.append(os.path.getmtime(eachone_d))
                 fileList.append(tmpfileinfo)
         if len(fileList) > 1:
