@@ -19,3 +19,7 @@ pip3 install pyqt5 gitpython markdown2
 ![](pictures/gitnote-5.png)
 
 ![](pictures/gitnote-6.png)
+
+![](pictures/gitnote-7.png)
+
+![](pictures/gitnote-8.png)
