@@ -16,10 +16,6 @@ pip3 install pyqt5 gitpython markdown2
 ### 其他功能开发中...
 
 以下是一些现有功能截图
-![](pictures/gitnote-1.png)
+![](pictures/gitnote-5.png)
 
-![](pictures/gitnote-2.png)
-
-![](pictures/gitnote-3.png)
-
-![](pictures/gitnote-4.png)
+![](pictures/gitnote-6.png)

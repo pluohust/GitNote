@@ -82,11 +82,15 @@ class Ui_Form_note(object):
         self.lineEdit_title.setReadOnly(True)
         self.lineEdit_title.setObjectName("lineEdit_title")
         self.horizontalLayout_3.addWidget(self.lineEdit_title)
+        self.pushButton_addpicture = QtWidgets.QPushButton(self.layoutWidget)
+        self.pushButton_addpicture.setObjectName("pushButton_addpicture")
+        self.horizontalLayout_3.addWidget(self.pushButton_addpicture)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.plainTextEdit_markdown = QtWidgets.QPlainTextEdit(self.layoutWidget)
         self.plainTextEdit_markdown.setEnabled(True)
+        self.plainTextEdit_markdown.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.plainTextEdit_markdown.setObjectName("plainTextEdit_markdown")
         self.horizontalLayout_2.addWidget(self.plainTextEdit_markdown)
         self.textEdit_show = QtWidgets.QTextEdit(self.layoutWidget)
@@ -109,5 +113,6 @@ class Ui_Form_note(object):
         self.pushButton_delete.setText(_translate("Form_note", "删除笔记"))
         self.pushButton_deletedir.setText(_translate("Form_note", "删除文件夹"))
         self.pushButton_save.setText(_translate("Form_note", "编辑"))
+        self.pushButton_addpicture.setText(_translate("Form_note", "添加图片"))
 
 

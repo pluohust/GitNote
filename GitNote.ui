@@ -19,13 +19,9 @@
   <property name="windowTitle">
    <string>笔记</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../.designer/backup/app.ico</normaloff>../../../.designer/backup/app.ico</iconset>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,1">
      <item>
       <widget class="QPushButton" name="pushButton_update">
        <property name="text">
@@ -36,7 +32,35 @@
      <item>
       <widget class="QPushButton" name="pushButton_create">
        <property name="text">
-        <string>新建</string>
+        <string>新建笔记</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_createdir">
+       <property name="text">
+        <string>新建文件夹</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_createroot">
+       <property name="text">
+        <string>新建Root</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_delete">
+       <property name="text">
+        <string>删除笔记</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_deletedir">
+       <property name="text">
+        <string>删除文件夹</string>
        </property>
       </widget>
      </item>
@@ -98,6 +122,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <attribute name="headerVisible">
         <bool>false</bool>
        </attribute>
@@ -120,6 +147,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="isWrapping" stdset="0">
         <bool>true</bool>
        </property>
@@ -131,7 +161,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -149,6 +179,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_addpicture">
+           <property name="text">
+            <string>添加图片</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -157,6 +194,9 @@
           <widget class="QPlainTextEdit" name="plainTextEdit_markdown">
            <property name="enabled">
             <bool>true</bool>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
            </property>
           </widget>
          </item>

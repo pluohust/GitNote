@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox
-from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog
+from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF
 from PyQt5.QtCore import Qt
 import GitNoteUi
 import main
 import git
 import os, getpass, threading, time, operator, shutil
+import pathlib
 import markdown2
 
 def runClone():
@@ -61,6 +62,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.listfileDir = main.gitNoteNoteHome
         self.viewfileName = ""
         self.plainTextEdit_markdown.hide()
+        self.plainTextEdit_markdown.setTabStopDistance(QFontMetricsF(self.plainTextEdit_markdown.font()).width(' ')*4)
         self.saveStatus = False
         self.createStatus = False
         self.pushButton_save.clicked.connect(self.clickedButtonSave)
@@ -77,6 +79,23 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_createroot.clicked.connect(self.createRootDir)
         self.pushButton_delete.clicked.connect(self.deleteNote)
         self.pushButton_deletedir.clicked.connect(self.deleteDir)
+        self.pushButton_addpicture.setEnabled(False)
+        self.pushButton_addpicture.clicked.connect(self.choosePictures)
+        self.insertPictures = []
+    
+    def choosePictures(self):
+        pictures, ok = QFileDialog.getOpenFileNames(self, "选取图片", str(pathlib.Path.home()), "Picture Files (*.png | *.jpg | *.jpeg | *.gif | *.ico")
+        for eachfile in pictures:
+            basenamewith = os.path.basename(eachfile)
+            basename, suffix = os.path.splitext(basenamewith)
+            i = 0
+            while os.path.exists(os.path.join(self.listfileDir, basename+"-"+str(i)+suffix)):
+                i = i + 1
+            lastbasename =basename + "-" + str(i) + suffix
+            self.insertPictures.append(lastbasename)
+            self.plainTextEdit_markdown.insertPlainText("\n![](" + lastbasename + ")\n")
+            lastname = os.path.join(self.listfileDir, lastbasename)
+            shutil.copyfile(eachfile, lastname)
     
     def deleteDir(self):
         countNotes = 0
@@ -103,6 +122,18 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         realname = os.path.splitext(basename)[0]
         replay = QMessageBox.warning(self, "警告", "您确定要删除笔记 "+realname+" 吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         if replay == QMessageBox.Yes:
+            # 先删除里面的图片
+            tmpf = open(self.viewfileName, "r")
+            tmpviewTexts = tmpf.read()
+            tmpf.close()
+            multilines = tmpviewTexts.split("\n")
+            for eachline in multilines:
+                if "![](" in eachline and ")" in eachline.split("![](")[1]:
+                    shotfile = (eachline.split("![](")[1]).split(")")[0]
+                    realfile = os.path.join(self.listfileDir, shotfile)
+                    if os.path.exists(realfile):
+                        os.remove(realfile)
+            # 然后删除markdown文件和更新控件显示
             os.remove(self.viewfileName)
             self.viewfileName = ""
             self.addTopDirs()
@@ -137,11 +168,13 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         pass
 
     def createNote(self):
+        self.insertPictures = []
         if self.saveStatus:
             self.saveNote()
         self.saveStatus = True
         self.pushButton_save.setText("保存")
         self.pushButton_save.setEnabled(True)
+        self.pushButton_addpicture.setEnabled(True)
         self.createStatus = True
         self.lineEdit_title.setReadOnly(False)
         self.lineEdit_title.clear()
@@ -165,7 +198,19 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         tmpf = open(self.viewfileName, "r")
         self.viewTexts = tmpf.read()
         tmpf.close()
-        self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
+        self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+    
+    def showRealPictures(self, inputtext):
+        multilines = inputtext.split("\n")
+        realtext = ""
+        for eachline in multilines:
+            if "![](" in eachline and ")" in eachline.split("![](")[1]:
+                shotfile = (eachline.split("![](")[1]).split(")")[0]
+                realfile = os.path.join(self.listfileDir, shotfile)
+                realtext = realtext + "![](" + realfile + ")\n"
+            else:
+                realtext = realtext + eachline + "\n"
+        return realtext
 
     def menuContextClicked(self, pos):
         item = self.listWidget_list.itemAt(pos)
@@ -178,19 +223,32 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         
     def textChangedEdit(self):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
-        self.textEdit_show.setText(markdown2.markdown(self.viewTexts))
+        self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
     
     def clickedButtonSave(self):
         if not self.saveStatus:
             if len(self.viewfileName) > 1:
+                # 更新已有的图片
+                self.insertPictures = []
+                multilines = self.viewTexts.split("\n")
+                for eachline in multilines:
+                    if "![](" in eachline and ")" in eachline.split("![](")[1]:
+                        shotfile = (eachline.split("![](")[1]).split(")")[0]
+                        self.insertPictures.append(shotfile)
+
                 self.saveStatus = True
                 self.plainTextEdit_markdown.setPlainText(self.viewTexts)
                 self.plainTextEdit_markdown.show()
                 self.pushButton_save.setText("保存")
+                self.pushButton_addpicture.setEnabled(True)
         else:
+            self.pushButton_addpicture.setEnabled(False)
             self.saveNote()
     
     def saveNote(self):
+        if len(self.lineEdit_title.text()) < 1:
+            QMessageBox.information(self, "警告", "请输入记录名！", QMessageBox.Yes)
+            return
         if self.createStatus:
             self.viewfileName = os.path.join(self.listfileDir, self.lineEdit_title.text().strip())
             self.lineEdit_title.setReadOnly(True)
@@ -205,6 +263,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             tmpf.write(self.viewTexts)
             tmpf.close()
             self.updateListView(self.listfileDir)
+            #pictures
+            for eachpicture in self.insertPictures:
+                if eachpicture not in self.viewTexts and os.path.exists(os.path.join(self.listfileDir, eachpicture)):
+                    os.remove(os.path.join(self.listfileDir, eachpicture))
             #self.treeWidget_tree.clear()
             #self.updateTreeItemName()
         if self.createStatus:
