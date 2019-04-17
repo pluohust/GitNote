@@ -3,7 +3,7 @@
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor
-from PyQt5.QtCore import Qt, QByteArray
+from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer
 import GitNoteUi
 import main
 import git
@@ -11,24 +11,34 @@ import os, getpass, threading, time, datetime, operator, shutil
 import pathlib
 import markdown2
 
-def runClone():
-    main.setGitEnv()
-    git.Repo.clone_from(url=main.gitUrl, to_path="/home/"+getpass.getuser()+"/.GitNote/Notes")
-    #git.Git("/home/"+getpass.getuser()+"/.GitNote/Notes").clone(main.gitUrl)
-    main.myGitNote.setUpdateBack()
+movieStatus = False
 
-def updateGit():
-    main.setGitEnv()
-    repo = git.Repo("/home/"+getpass.getuser()+"/.GitNote/Notes")
-    remote = repo.remote()
-    #index = repo.index
-    #index.add(u=True) # 
-    #index.commit('note')
-    repo.git.add('--all')
-    repo.index.commit('note')
-    remote.push()
-    remote.pull()
-    main.myGitNote.setUpdateBack()
+class CloneThread(QThread):
+    def __init__(self):
+        super(CloneThread, self).__init__()
+    
+    def run(self):
+        global movieStatus
+        main.setGitEnv()
+        git.Repo.clone_from(url=main.gitUrl, to_path=main.gitNoteNoteHome)
+        movieStatus = True
+        #main.myGitNote.setUpdateBack()
+
+class UpdateThread(QThread):
+    def __init__(self):
+        super(UpdateThread, self).__init__()
+    
+    def run(self):
+        global movieStatus
+        main.setGitEnv()
+        repo = git.Repo(main.gitNoteNoteHome)
+        remote = repo.remote()
+        repo.git.add('--all')
+        repo.index.commit('note')
+        remote.push()
+        remote.pull()
+        movieStatus = True
+        #main.myGitNote.setUpdateBack()
 
 class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     def __init__(self, parent=None):
@@ -42,7 +52,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if not main.gitExist:
             self.mycloneGit()
         self.pushButton_update.clicked.connect(self.myupdateGit)
-        self.dirIcon = QIcon("dir.ico")
+        self.dirIcon = QIcon(os.path.join(os.path.dirname(__file__),"dir.ico"))
         self.addTopDirs()
         self.treeWidget_tree.clicked.connect(self.onTreeClicked)
         self.treeWidget_tree.customContextMenuRequested.connect(self.menuTreeContextClicked)
@@ -85,6 +95,16 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_addpicture.setIcon(addpicturicon)
         # 保存打开时的文本
         self.oldTexts = ""
+        # 更新恢复
+        self.movietimer = QTimer(self)
+        self.movietimer.start(500)
+        self.movietimer.timeout.connect(self.movieTimeout)
+    
+    def movieTimeout(self):
+        global movieStatus
+        if movieStatus:
+            movieStatus = False
+            self.setUpdateBack()
 
     def closeEvent(self, event):
         if self.saveStatus:
@@ -128,6 +148,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         replay = QMessageBox.warning(self, "警告", "文件夹 " + os.path.basename(os.path.normpath(self.listfileDir)) + "下有" + str(countNotes) + "篇笔记，您确定要删除吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         if replay == QMessageBox.Yes and os.path.exists(self.listfileDir):
             shutil.rmtree(self.listfileDir)
+            if self.listfileDir in self.viewfileName:
+                self.lineEdit_title.clear()
+                self.plainTextEdit_markdown.clear()
+                self.textEdit_show.clear()
             self.listfileDir = main.gitNoteNoteHome
             self.addTopDirs()
             self.listWidget_list.clear()
@@ -332,19 +356,28 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.movie = QMovie(os.path.join(os.path.dirname(__file__), "loading.gif"), QByteArray(), self)
             self.movie.frameChanged.connect(self.setButtonIcon)
             self.movie.start()
-            cloneThread = threading.Thread(target=runClone, name="cloneThread")
-            cloneThread.start()
+            main.updateStatus = True
+            self.cloneThread = CloneThread()
+            self.cloneThread.start()
     
     def myupdateGit(self):
+        if main.updateStatus:
+            return
+        else:
+            main.updateStatus = True
         self.setUpdateStatus()
-        updateThread = threading.Thread(target=updateGit, name="updateThread")
-        updateThread.start()
+        self.updateThread = UpdateThread()
+        self.updateThread.start()
     
     def setUpdateBack(self):
         self.movie = None
         icon = QIcon()
         icon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "loading.png")), QIcon.Normal, QIcon.Off)
         self.pushButton_update.setIcon(icon)
+        self.addTopDirs()
+        self.treeWidget_tree.expandAll()
+        main.updateStatus = False
+        #self.pushButton_update.setText("更新")
     
     def setButtonIcon(self):
         if self.movie:
@@ -354,6 +387,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.movie = QMovie(os.path.join(os.path.dirname(__file__), "loading.gif"), QByteArray(), self)
         self.movie.frameChanged.connect(self.setButtonIcon)
         self.movie.start()
+        #self.pushButton_update.setText("更新中")
 
     def addTopDirs(self):
         self.treeWidget_tree.clear()

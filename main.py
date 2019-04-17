@@ -16,6 +16,7 @@ gitUrl = ""
 gitExist = True
 
 myGitNote = ""
+updateStatus = False
 
 def setGitEnv():
     os.environ['GIT_ASKPASS'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'askpass.py')
