@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog
-from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie
+from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor
 from PyQt5.QtCore import Qt, QByteArray
 import GitNoteUi
 import main
@@ -110,13 +110,14 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             basenamewith = os.path.basename(eachfile)
             basename, suffix = os.path.splitext(basenamewith)
             i = 0
-            while os.path.exists(os.path.join(self.listfileDir, basename+"-"+str(i)+suffix)):
+            while os.path.exists(os.path.join(self.showTextDir, basename+"-"+str(i)+suffix)):
                 i = i + 1
             lastbasename =basename + "-" + str(i) + suffix
             self.insertPictures.append(lastbasename)
             self.plainTextEdit_markdown.insertPlainText("\n![](" + lastbasename + ")\n")
-            lastname = os.path.join(self.listfileDir, lastbasename)
+            lastname = os.path.join(self.showTextDir, lastbasename)
             shutil.copyfile(eachfile, lastname)
+            time.sleep(0.01)
     
     def deleteDir(self):
         countNotes = 0
@@ -223,6 +224,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.textEdit_show.clear()
         self.lineEdit_title.setFocus()
         self.oldTexts = ""
+        self.showTextDir = self.listfileDir
     
     def clickedListView(self, qmodelindex):
         item = self.listWidget_list.currentItem()
@@ -240,7 +242,9 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         tmpf = open(self.viewfileName, "r")
         self.viewTexts = tmpf.read()
         tmpf.close()
+        self.showTextDir = self.listfileDir
         self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        self.textEdit_show.moveCursor(QTextCursor.Start)
     
     def showRealPictures(self, inputtext):
         multilines = inputtext.split("\n")
@@ -248,7 +252,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         for eachline in multilines:
             if "![](" in eachline and ")" in eachline.split("![](")[1]:
                 shotfile = (eachline.split("![](")[1]).split(")")[0]
-                realfile = os.path.join(self.listfileDir, shotfile)
+                realfile = os.path.join(self.showTextDir, shotfile)
                 realtext = realtext + "![](" + realfile + ")\n"
             else:
                 realtext = realtext + eachline + "\n"
@@ -256,7 +260,11 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         
     def textChangedEdit(self):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
-        self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        therealmd = self.showRealPictures(self.viewTexts)
+        #self.textEdit_show.clear()
+        self.textEdit_show.setText(markdown2.markdown(therealmd))
+        self.textEdit_show.moveCursor(QTextCursor.End)
+
     
     def clickedButtonSave(self):
         if not self.saveStatus: # 编辑
@@ -277,9 +285,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 self.pushButton_save.setIcon(saveicon)
                 self.pushButton_addpicture.setEnabled(True)
                 self.oldTexts = self.viewTexts
-        else:
+        else: #保存
             self.pushButton_addpicture.setEnabled(False)
             self.saveNote(True)
+            self.textEdit_show.moveCursor(QTextCursor.Start)
 
     def saveNote(self, checkwarning):
         if len(self.lineEdit_title.text()) < 1:
@@ -287,7 +296,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 QMessageBox.information(self, "警告", "请输入记录名！", QMessageBox.Yes)
             return False
         if self.createStatus:
-            self.viewfileName = os.path.join(self.listfileDir, self.lineEdit_title.text().strip())
+            self.viewfileName = os.path.join(self.showTextDir, self.lineEdit_title.text().strip())
             self.lineEdit_title.setReadOnly(True)
             if self.viewfileName[-3:] != ".md":
                 self.viewfileName = self.viewfileName + ".md"

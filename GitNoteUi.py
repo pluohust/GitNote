@@ -86,6 +86,7 @@ class Ui_Form_note(object):
         self.horizontalLayout_2.addWidget(self.plainTextEdit_markdown)
         self.textEdit_show = QtWidgets.QTextEdit(self.layoutWidget)
         self.textEdit_show.setReadOnly(True)
+        self.textEdit_show.setOverwriteMode(True)
         self.textEdit_show.setObjectName("textEdit_show")
         self.horizontalLayout_2.addWidget(self.textEdit_show)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
