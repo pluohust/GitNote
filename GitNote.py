@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QByteArray
 import GitNoteUi
 import main
 import git
-import os, getpass, threading, time, operator, shutil
+import os, getpass, threading, time, datetime, operator, shutil
 import pathlib
 import markdown2
 
@@ -83,6 +83,13 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         addpicturicon = QIcon()
         addpicturicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "addpicture.png")), QIcon.Normal, QIcon.Off)
         self.pushButton_addpicture.setIcon(addpicturicon)
+        # 保存打开时的文本
+        self.oldTexts = ""
+    
+    def keyPressEvent(self, event):
+        if (event.key() == Qt.Key_O):
+            if QApplication.keyboardModifiers() == Qt.ControlModifier:
+                self.pushButton_save.clicked.emit()
     
     def choosePictures(self):
         pictures, ok = QFileDialog.getOpenFileNames(self, "选取图片", str(pathlib.Path.home()), "Picture Files (*.png | *.jpg | *.jpeg | *.gif | *.ico")
@@ -202,6 +209,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.plainTextEdit_markdown.show()
         self.textEdit_show.clear()
         self.lineEdit_title.setFocus()
+        self.oldTexts = ""
     
     def clickedListView(self, qmodelindex):
         item = self.listWidget_list.currentItem()
@@ -238,7 +246,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
     
     def clickedButtonSave(self):
-        if not self.saveStatus:
+        if not self.saveStatus: # 编辑
             if len(self.viewfileName) > 1:
                 # 更新已有的图片
                 self.insertPictures = []
@@ -255,6 +263,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "save.ico")), QIcon.Normal, QIcon.Off)
                 self.pushButton_save.setIcon(saveicon)
                 self.pushButton_addpicture.setEnabled(True)
+                self.oldTexts = self.viewTexts
         else:
             self.pushButton_addpicture.setEnabled(False)
             self.saveNote()
@@ -275,6 +284,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_save.setIcon(saveicon)
         self.lineEdit_title.setReadOnly(True)
         if len(self.viewfileName) > 1:
+            if not self.createStatus and self.oldTexts == self.viewTexts:
+                return
             tmpf = open(self.viewfileName, "w")
             tmpf.write(self.viewTexts)
             tmpf.close()
@@ -411,4 +422,9 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         readHandle.close()
         if len(returnStr) > 10:
             returnStr = returnStr[:10] + "\n" + returnStr[10:]
+        returnStr = returnStr + "\n" + self.timeStampToTime(os.path.getmtime(filepath))
         return returnStr
+    
+    def timeStampToTime(self, timestamp):
+        timeStruct = time.localtime(timestamp)
+        return time.strftime("%Y-%m-%d %H:%M:%S", timeStruct)
