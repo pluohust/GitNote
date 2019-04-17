@@ -165,7 +165,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         replay = QMessageBox.warning(self, "警告", "您确定要删除笔记 "+realname+" 吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         if replay == QMessageBox.Yes:
             # 先删除里面的图片
-            tmpf = open(self.viewfileName, "r")
+            tmpf = open(self.viewfileName, "r", encoding='UTF-8')
             tmpviewTexts = tmpf.read()
             tmpf.close()
             multilines = tmpviewTexts.split("\n")
@@ -263,11 +263,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if self.viewfileName[-3:] != ".md":
             self.viewfileName = self.viewfileName + ".md"
         self.lineEdit_title.setText(os.path.splitext(filename)[0])
-        tmpf = open(self.viewfileName, "r")
+        tmpf = open(self.viewfileName, "r", encoding='UTF-8')
         self.viewTexts = tmpf.read()
         tmpf.close()
         self.showTextDir = self.listfileDir
-        self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        #self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        self.textEdit_show.setHtml(markdown2.markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.Start)
     
     def showRealPictures(self, inputtext):
@@ -277,7 +278,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             if "![](" in eachline and ")" in eachline.split("![](")[1]:
                 shotfile = (eachline.split("![](")[1]).split(")")[0]
                 realfile = os.path.join(self.showTextDir, shotfile)
-                realtext = realtext + "![](" + realfile + ")\n"
+                print(realfile)
+                #realtext = realtext + "![](" + realfile + ")\n"
+                realtext = realtext + '<img src="' + realfile + '" />\n'
+                print( '<img src="' + realfile + '" />')
             else:
                 realtext = realtext + eachline + "\n"
         return realtext
@@ -286,7 +290,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
         therealmd = self.showRealPictures(self.viewTexts)
         #self.textEdit_show.clear()
-        self.textEdit_show.setText(markdown2.markdown(therealmd))
+        #self.textEdit_show.setText(markdown2.markdown(therealmd))
+        self.textEdit_show.setHtml(markdown2.markdown(therealmd))
         self.textEdit_show.moveCursor(QTextCursor.End)
 
     
@@ -333,7 +338,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if len(self.viewfileName) > 1:
             if not self.createStatus and self.oldTexts == self.viewTexts:
                 return
-            tmpf = open(self.viewfileName, "w")
+            tmpf = open(self.viewfileName, "w", encoding='UTF-8')
             tmpf.write(self.viewTexts)
             tmpf.close()
             self.updateListView(self.listfileDir)
@@ -468,7 +473,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     
     def read20words(self, filepath):
         returnStr = ""
-        readHandle = open(filepath, "r")
+        readHandle = open(filepath, "r", encoding='UTF-8')
         while True:
             oneline = readHandle.readline()
             returnStr = returnStr + oneline.strip()
