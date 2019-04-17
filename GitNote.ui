@@ -21,46 +21,11 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
      <item>
       <widget class="QPushButton" name="pushButton_update">
        <property name="text">
         <string>更新</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_create">
-       <property name="text">
-        <string>新建笔记</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_createdir">
-       <property name="text">
-        <string>新建文件夹</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_createroot">
-       <property name="text">
-        <string>新建Root</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_delete">
-       <property name="text">
-        <string>删除笔记</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_deletedir">
-       <property name="text">
-        <string>删除文件夹</string>
        </property>
       </widget>
      </item>
@@ -215,6 +180,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>treeWidget_tree</tabstop>
+  <tabstop>listWidget_list</tabstop>
+  <tabstop>lineEdit_title</tabstop>
+  <tabstop>plainTextEdit_markdown</tabstop>
+  <tabstop>textEdit_show</tabstop>
+  <tabstop>pushButton_update</tabstop>
+  <tabstop>pushButton_save</tabstop>
+  <tabstop>pushButton_addpicture</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
