@@ -85,6 +85,19 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_addpicture.setIcon(addpicturicon)
         # 保存打开时的文本
         self.oldTexts = ""
+
+    def closeEvent(self, event):
+        if self.saveStatus:
+            unsavereturn = self.saveNote(False)
+            if not unsavereturn:
+                replay = QMessageBox.question(self, "未保存警告", "有未保存的未命名笔记，确定退出？", QMessageBox.Yes, QMessageBox.No)
+                if replay == QMessageBox.Yes:
+                    event.accept()
+                    return
+                elif replay == QMessageBox.No:
+                    event.ignore()
+                    return
+        event.accept()
     
     def keyPressEvent(self, event):
         if (event.key() == Qt.Key_O):
@@ -195,7 +208,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     def createNote(self):
         self.insertPictures = []
         if self.saveStatus:
-            self.saveNote()
+            self.saveNote(True)
         self.saveStatus = True
         saveicon = QIcon()
         saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "save.ico")), QIcon.Normal, QIcon.Off)
@@ -216,7 +229,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if not item:
             return
         if self.saveStatus or self.createStatus:
-            self.saveNote()
+            self.saveNote(True)
         itemCount = item.text()
         filename = (itemCount.split("\n"))[0]
         self.pushButton_save.setEnabled(True)
@@ -266,12 +279,13 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 self.oldTexts = self.viewTexts
         else:
             self.pushButton_addpicture.setEnabled(False)
-            self.saveNote()
-    
-    def saveNote(self):
+            self.saveNote(True)
+
+    def saveNote(self, checkwarning):
         if len(self.lineEdit_title.text()) < 1:
-            QMessageBox.information(self, "警告", "请输入记录名！", QMessageBox.Yes)
-            return
+            if checkwarning:
+                QMessageBox.information(self, "警告", "请输入记录名！", QMessageBox.Yes)
+            return False
         if self.createStatus:
             self.viewfileName = os.path.join(self.listfileDir, self.lineEdit_title.text().strip())
             self.lineEdit_title.setReadOnly(True)
@@ -299,6 +313,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if self.createStatus:
             self.createStatus = False
             self.addTopDirs()
+        return True
     
     def updateUiAfterShow(self):
         self.treeWidget_tree.setColumnWidth(0,100)
