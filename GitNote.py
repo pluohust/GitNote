@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog
-from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie
+from PyQt5.QtCore import Qt, QByteArray
 import GitNoteUi
 import main
 import git
@@ -18,7 +18,6 @@ def runClone():
     main.myGitNote.setUpdateBack()
 
 def updateGit():
-    main.myGitNote.setUpdateStatus()
     main.setGitEnv()
     repo = git.Repo("/home/"+getpass.getuser()+"/.GitNote/Notes")
     remote = repo.remote()
@@ -74,6 +73,16 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.pushButton_addpicture.setEnabled(False)
         self.pushButton_addpicture.clicked.connect(self.choosePictures)
         self.insertPictures = []
+        # 设置更新图标
+        icon = QIcon()
+        icon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "loading.png")), QIcon.Normal, QIcon.Off)
+        self.pushButton_update.setIcon(icon)
+        saveicon = QIcon()
+        saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "edit.ico")), QIcon.Normal, QIcon.Off)
+        self.pushButton_save.setIcon(saveicon)
+        addpicturicon = QIcon()
+        addpicturicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "addpicture.png")), QIcon.Normal, QIcon.Off)
+        self.pushButton_addpicture.setIcon(addpicturicon)
     
     def choosePictures(self):
         pictures, ok = QFileDialog.getOpenFileNames(self, "选取图片", str(pathlib.Path.home()), "Picture Files (*.png | *.jpg | *.jpeg | *.gif | *.ico")
@@ -181,7 +190,9 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if self.saveStatus:
             self.saveNote()
         self.saveStatus = True
-        self.pushButton_save.setText("保存")
+        saveicon = QIcon()
+        saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "save.ico")), QIcon.Normal, QIcon.Off)
+        self.pushButton_save.setIcon(saveicon)
         self.pushButton_save.setEnabled(True)
         self.pushButton_addpicture.setEnabled(True)
         self.createStatus = True
@@ -240,7 +251,9 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 self.saveStatus = True
                 self.plainTextEdit_markdown.setPlainText(self.viewTexts)
                 self.plainTextEdit_markdown.show()
-                self.pushButton_save.setText("保存")
+                saveicon = QIcon()
+                saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "save.ico")), QIcon.Normal, QIcon.Off)
+                self.pushButton_save.setIcon(saveicon)
                 self.pushButton_addpicture.setEnabled(True)
         else:
             self.pushButton_addpicture.setEnabled(False)
@@ -257,7 +270,9 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 self.viewfileName = self.viewfileName + ".md"
         self.saveStatus = False
         self.plainTextEdit_markdown.hide()
-        self.pushButton_save.setText("编辑")
+        saveicon = QIcon()
+        saveicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "edit.ico")), QIcon.Normal, QIcon.Off)
+        self.pushButton_save.setIcon(saveicon)
         self.lineEdit_title.setReadOnly(True)
         if len(self.viewfileName) > 1:
             tmpf = open(self.viewfileName, "w")
@@ -279,19 +294,31 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     
     def mycloneGit(self):
         if not main.gitExist:
-            self.pushButton_update.setText("克隆中")
+            self.movie = QMovie(os.path.join(os.path.dirname(__file__), "loading.gif"), QByteArray(), self)
+            self.movie.frameChanged.connect(self.setButtonIcon)
+            self.movie.start()
             cloneThread = threading.Thread(target=runClone, name="cloneThread")
             cloneThread.start()
     
     def myupdateGit(self):
+        self.setUpdateStatus()
         updateThread = threading.Thread(target=updateGit, name="updateThread")
         updateThread.start()
     
     def setUpdateBack(self):
-        self.pushButton_update.setText("更新")
+        self.movie = None
+        icon = QIcon()
+        icon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "loading.png")), QIcon.Normal, QIcon.Off)
+        self.pushButton_update.setIcon(icon)
+    
+    def setButtonIcon(self):
+        if self.movie:
+            self.pushButton_update.setIcon(QIcon(self.movie.currentPixmap()))
     
     def setUpdateStatus(self):
-        self.pushButton_update.setText("更新中")
+        self.movie = QMovie(os.path.join(os.path.dirname(__file__), "loading.gif"), QByteArray(), self)
+        self.movie.frameChanged.connect(self.setButtonIcon)
+        self.movie.start()
 
     def addTopDirs(self):
         self.treeWidget_tree.clear()

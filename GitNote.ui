@@ -25,7 +25,13 @@
      <item>
       <widget class="QPushButton" name="pushButton_update">
        <property name="text">
-        <string>更新</string>
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -133,7 +139,13 @@
          <item>
           <widget class="QPushButton" name="pushButton_save">
            <property name="text">
-            <string>编辑</string>
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -147,7 +159,13 @@
          <item>
           <widget class="QPushButton" name="pushButton_addpicture">
            <property name="text">
-            <string>添加图片</string>
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
            </property>
           </widget>
          </item>

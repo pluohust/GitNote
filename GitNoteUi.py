@@ -23,6 +23,8 @@ class Ui_Form_note(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.pushButton_update = QtWidgets.QPushButton(Form_note)
+        self.pushButton_update.setText("")
+        self.pushButton_update.setIconSize(QtCore.QSize(16, 16))
         self.pushButton_update.setObjectName("pushButton_update")
         self.horizontalLayout.addWidget(self.pushButton_update)
         spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -61,6 +63,8 @@ class Ui_Form_note(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.pushButton_save = QtWidgets.QPushButton(self.layoutWidget)
+        self.pushButton_save.setText("")
+        self.pushButton_save.setIconSize(QtCore.QSize(20, 20))
         self.pushButton_save.setObjectName("pushButton_save")
         self.horizontalLayout_3.addWidget(self.pushButton_save)
         self.lineEdit_title = QtWidgets.QLineEdit(self.layoutWidget)
@@ -68,6 +72,8 @@ class Ui_Form_note(object):
         self.lineEdit_title.setObjectName("lineEdit_title")
         self.horizontalLayout_3.addWidget(self.lineEdit_title)
         self.pushButton_addpicture = QtWidgets.QPushButton(self.layoutWidget)
+        self.pushButton_addpicture.setText("")
+        self.pushButton_addpicture.setIconSize(QtCore.QSize(20, 20))
         self.pushButton_addpicture.setObjectName("pushButton_addpicture")
         self.horizontalLayout_3.addWidget(self.pushButton_addpicture)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
@@ -98,8 +104,5 @@ class Ui_Form_note(object):
     def retranslateUi(self, Form_note):
         _translate = QtCore.QCoreApplication.translate
         Form_note.setWindowTitle(_translate("Form_note", "笔记"))
-        self.pushButton_update.setText(_translate("Form_note", "更新"))
-        self.pushButton_save.setText(_translate("Form_note", "编辑"))
-        self.pushButton_addpicture.setText(_translate("Form_note", "添加图片"))
 
 
