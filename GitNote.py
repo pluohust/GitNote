@@ -9,9 +9,21 @@ import main
 import git
 import os, getpass, threading, time, datetime, operator, shutil
 import pathlib
-import markdown2
+import markdown2, mistune
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import html
 
 movieStatus = False
+
+class HighlightRenderer(mistune.Renderer):
+    def block_code(self, code, lang):
+        if not lang:
+            return '\n<pre><code>%s</code></pre>\n' % \
+                mistune.escape(code)
+        lexer = get_lexer_by_name(lang, stripall=True)
+        formatter = html.HtmlFormatter()
+        return highlight(code, lexer, formatter)
 
 class CloneThread(QThread):
     def __init__(self):
@@ -268,7 +280,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         tmpf.close()
         self.showTextDir = self.listfileDir
         #self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
-        self.textEdit_show.setHtml(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        #self.textEdit_show.setHtml(markdown2.markdown(self.showRealPictures(self.viewTexts)))
+        #renderer = HighlightRenderer()
+        markdown = mistune.Markdown()
+        self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.Start)
     
     def showRealPictures(self, inputtext):
@@ -291,7 +306,11 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         therealmd = self.showRealPictures(self.viewTexts)
         #self.textEdit_show.clear()
         #self.textEdit_show.setText(markdown2.markdown(therealmd))
-        self.textEdit_show.setHtml(markdown2.markdown(therealmd))
+        #self.textEdit_show.setHtml(markdown2.markdown(therealmd))
+        #renderer = HighlightRenderer()
+        #markdown = mistune.Markdown(renderer=renderer)
+        markdown = mistune.Markdown()
+        self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.End)
 
     
