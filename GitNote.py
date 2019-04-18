@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog, QInputDialog
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor
 from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer
 import GitNoteUi
@@ -9,7 +9,7 @@ import main
 import git
 import os, getpass, threading, time, datetime, operator, shutil
 import pathlib
-import markdown2, mistune
+import mistune
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html
@@ -151,6 +151,23 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             shutil.copyfile(eachfile, lastname)
             time.sleep(0.01)
     
+    def moveDirToDir(self):
+        dir_choose = QFileDialog.getExistingDirectory(self, "选择目标文件夹", main.gitNoteNoteHome)
+        if self.listfileDir in dir_choose:
+            QMessageBox.information(self, "警告", "文件夹不能移动到当前目录和子目录！", QMessageBox.Yes)
+            return
+        targetDir = self.getTargetName(dir_choose, os.path.basename(self.listfileDir))
+        if os.path.exists(self.listfileDir):
+            shutil.move(self.listfileDir, targetDir)
+        if self.listfileDir in self.viewfileName:
+            self.lineEdit_title.clear()
+            self.plainTextEdit_markdown.clear()
+            self.textEdit_show.clear()
+        self.listfileDir = main.gitNoteNoteHome
+        self.addTopDirs()
+        self.listWidget_list.clear()
+        self.pushButton_save.setEnabled(False)
+    
     def deleteDir(self):
         countNotes = 0
         for dirpath, dirnames, filenames in os.walk(self.listfileDir):
@@ -168,35 +185,40 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.addTopDirs()
             self.listWidget_list.clear()
             self.pushButton_save.setEnabled(False)
+
+    def getPicturesInOneNote(self, filename):
+        pictures = []
+        tmpf = open(filename, "r", encoding='UTF-8')
+        tmpviewTexts = tmpf.read()
+        tmpf.close()
+        multilines = tmpviewTexts.split("\n")
+        for eachline in multilines:
+            if "![](" in eachline and ")" in eachline.split("![](")[1]:
+                shotfile = (eachline.split("![](")[1]).split(")")[0]
+                realfile = os.path.join(self.listfileDir, shotfile)
+                if os.path.exists(realfile):
+                    pictures.append(realfile)
+        return pictures
     
     def deleteNote(self):
-        if not os.path.exists(self.viewfileName):
+        if not os.path.exists(self.listmenufilename):
             return
-        basename = os.path.basename(self.viewfileName)
+        basename = os.path.basename(self.listmenufilename)
         realname = os.path.splitext(basename)[0]
         replay = QMessageBox.warning(self, "警告", "您确定要删除笔记 "+realname+" 吗？", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         if replay == QMessageBox.Yes:
             # 先删除里面的图片
-            tmpf = open(self.viewfileName, "r", encoding='UTF-8')
-            tmpviewTexts = tmpf.read()
-            tmpf.close()
-            multilines = tmpviewTexts.split("\n")
-            for eachline in multilines:
-                if "![](" in eachline and ")" in eachline.split("![](")[1]:
-                    shotfile = (eachline.split("![](")[1]).split(")")[0]
-                    realfile = os.path.join(self.listfileDir, shotfile)
-                    if os.path.exists(realfile):
-                        os.remove(realfile)
+            pictures = self.getPicturesInOneNote(self.listmenufilename)
+            for eachpicture in pictures:
+                os.remove(eachpicture)
             # 然后删除markdown文件和更新控件显示
-            os.remove(self.viewfileName)
-            self.viewfileName = ""
+            os.remove(self.listmenufilename)
             self.addTopDirs()
             if os.path.exists(self.listfileDir):
                 self.updateListView(self.listfileDir)
-            self.pushButton_save.setEnabled(False)
-            self.lineEdit_title.clear()
-            self.plainTextEdit_markdown.clear()
-            self.textEdit_show.clear()
+            if self.listmenufilename.strip() == self.viewfileName.strip():
+                self.clearNoteShow()
+            self.listmenufilename = ""
     
     def createRootDir(self):
         newDirName, ok = QInputDialog.getText(self, "创建新文件夹", "文件夹名")
@@ -219,12 +241,109 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         if item:
             itemCount = item.text()
             filename = (itemCount.split("\n"))[0]
-            self.viewfileName = os.path.join(self.listfileDir, filename)
-            if self.viewfileName[-3:] != ".md":
-                self.viewfileName = self.viewfileName + ".md"
+            #self.viewfileName = os.path.join(self.listfileDir, filename)
+            #if self.viewfileName[-3:] != ".md":
+            #    self.viewfileName = self.viewfileName + ".md"
+            self.listmenufilename = os.path.join(self.listfileDir, filename)
+            if self.listmenufilename[-3:] != ".md":
+                self.listmenufilename = self.listmenufilename + ".md"
             self.listmenu = QMenu()
             self.listmenu.addAction("删除笔记", self.deleteNote)
+            self.listmenu.addAction("移动笔记", self.moveNoteToDir)
+            self.listmenu.addAction("重命名笔记", self.renameNote)
             self.listmenu.exec_(self.listWidget_list.mapToGlobal(pos))
+    
+    def clearNoteShow(self):
+        self.pushButton_save.setEnabled(False)
+        self.lineEdit_title.clear()
+        self.lineEdit_title.setReadOnly(True)
+        self.pushButton_addpicture.setEnabled(False)
+        self.plainTextEdit_markdown.clear()
+        self.plainTextEdit_markdown.hide()
+        self.textEdit_show.clear()
+        self.viewfileName = ""
+
+    def renameNote(self):
+        newname, ok = QInputDialog.getText(self, "笔记重命名", "请输入新名：")
+        newname = newname + ".md"
+        if ok:
+            newfilepath = os.path.join(self.listfileDir, newname)
+            if os.path.exists(newfilepath):
+                QMessageBox.warning(self, "警告", "笔记已存在，请重新命名", QMessageBox.Yes, QMessageBox.Yes)
+                return
+            if os.path.exists(self.listmenufilename):
+                shutil.move(self.listmenufilename, newfilepath)
+                if self.viewfileName.strip() == self.listmenufilename.strip():
+                    realname = os.path.splitext(newname)[0]
+                    self.lineEdit_title.setText(realname)
+                    self.viewfileName = newfilepath
+                if os.path.exists(self.listfileDir):
+                    self.updateListView(self.listfileDir)
+
+    def getTargetName(self, targetDir, basenamewith):
+        if os.path.exists(os.path.join(targetDir, basenamewith)):
+            basename, suffix = os.path.splitext(basenamewith)
+            i = 0
+            while os.path.exists(os.path.join(targetDir, basename+"-"+str(i)+suffix)):
+                i = i + 1
+            basenamewith = basename + "-" + str(i) + suffix
+        return os.path.join(targetDir, basenamewith)
+    
+    def replacePictureName(self, viewTexts, basename, newbasename):
+        multilines = viewTexts.split("\n")
+        newViewTexts = ""
+        for eachline in multilines:
+            if "![](" in eachline and ")" in eachline.split("![](")[1] and (eachline.split("![](")[1]).split(")")[0] == basename:
+                newViewTexts = newViewTexts + "![]("+newbasename+")\n"
+            else:
+                newViewTexts = newViewTexts + eachline+"\n"
+        return newViewTexts
+    
+    def moveNoteToDir(self):
+        dir_choose = QFileDialog.getExistingDirectory(self, "选择目标文件夹", main.gitNoteNoteHome)
+        if main.gitNoteNoteHome in dir_choose and os.path.dirname(self.listmenufilename) != dir_choose:
+            # 移动图片
+            tmpf = open(self.listmenufilename, "r", encoding='UTF-8')
+            tmpviewTexts = tmpf.read()
+            tmpf.close()
+            pictures = self.getPicturesInOneNote(self.listmenufilename)
+            for eachpicture in pictures:
+                basename = os.path.basename(eachpicture)
+                targetfilename = self.getTargetName(dir_choose, basename)
+                if os.path.exists(eachpicture):
+                    shutil.move(eachpicture, targetfilename)
+                newbasename = os.path.basename(targetfilename)
+                tmpviewTexts= self.replacePictureName(tmpviewTexts, basename, newbasename)
+            tmpf = open(self.listmenufilename, "w", encoding='UTF-8')
+            tmpf.write(tmpviewTexts)
+            tmpf.close()
+            # 移动日记文件
+            basename = os.path.basename(self.listmenufilename)
+            targetfilename = self.getTargetName(dir_choose, basename)
+            if os.path.exists(self.listmenufilename):
+                shutil.move(self.listmenufilename, targetfilename)
+            if self.viewfileName.strip() == self.listmenufilename.strip():
+                self.viewfileName = ""
+                self.clearNoteShow()
+            self.addTopDirs()
+            if os.path.exists(self.listfileDir):
+                self.updateListView(self.listfileDir)
+    
+    def renameDir(self):
+        newname, ok = QInputDialog.getText(self, "笔记重命名", "请输入新名：")
+        if ok:
+            if self.listfileDir[-1] == '/' or self.listfileDir[-1] == '\\':
+                self.listfileDir = self.listfileDir[:-1]
+            newDir = os.path.join(os.path.dirname(self.listfileDir), newname)
+            if os.path.exists(newDir):
+                QMessageBox.warning(self, "警告", "文件夹已存在，请重新命名", QMessageBox.Yes, QMessageBox.Yes)
+                return
+            else:
+                shutil.move(self.listfileDir, newDir)
+                self.listfileDir = newDir
+                self.addTopDirs()
+                self.updateListView(self.listfileDir)
+                self.clearNoteShow()
 
     def menuTreeContextClicked(self, pos):
         item = self.treeWidget_tree.itemAt(pos)
@@ -235,6 +354,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.treemenu.addAction("新建笔记", self.createNote)
             self.treemenu.addAction("新建文件夹", self.createDir)
             self.treemenu.addAction("删除文件夹", self.deleteDir)
+            self.treemenu.addAction("移动文件夹", self.moveDirToDir)
+            self.treemenu.addAction("重命名文件夹", self.renameDir)
             self.treemenu.exec_(self.treeWidget_tree.mapToGlobal(pos))
         else:
             self.listfileDir = main.gitNoteNoteHome
@@ -293,10 +414,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             if "![](" in eachline and ")" in eachline.split("![](")[1]:
                 shotfile = (eachline.split("![](")[1]).split(")")[0]
                 realfile = os.path.join(self.showTextDir, shotfile)
-                print(realfile)
                 #realtext = realtext + "![](" + realfile + ")\n"
                 realtext = realtext + '<img src="' + realfile + '" />\n'
-                print( '<img src="' + realfile + '" />')
             else:
                 realtext = realtext + eachline + "\n"
         return realtext

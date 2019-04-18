@@ -5,7 +5,7 @@
 安装必要环境，安装并配置Git
 ```
 sudo apt install python3-pip
-pip3 install pyqt5 gitpython markdown2
+pip3 install pyqt5 gitpython mistune
 ```
 
 ### 现在已完成基本功能，包括
