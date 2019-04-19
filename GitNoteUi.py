@@ -84,6 +84,12 @@ class Ui_Form_note(object):
         self.pushButton_addpicture.setIconSize(QtCore.QSize(20, 20))
         self.pushButton_addpicture.setObjectName("pushButton_addpicture")
         self.horizontalLayout_3.addWidget(self.pushButton_addpicture)
+        self.toolButton_functions = QtWidgets.QToolButton(self.layoutWidget)
+        self.toolButton_functions.setText("")
+        self.toolButton_functions.setIconSize(QtCore.QSize(20, 20))
+        self.toolButton_functions.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+        self.toolButton_functions.setObjectName("toolButton_functions")
+        self.horizontalLayout_3.addWidget(self.toolButton_functions)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -108,7 +114,6 @@ class Ui_Form_note(object):
         Form_note.setTabOrder(self.plainTextEdit_markdown, self.textEdit_show)
         Form_note.setTabOrder(self.textEdit_show, self.pushButton_update)
         Form_note.setTabOrder(self.pushButton_update, self.pushButton_save)
-        Form_note.setTabOrder(self.pushButton_save, self.pushButton_addpicture)
 
     def retranslateUi(self, Form_note):
         _translate = QtCore.QCoreApplication.translate

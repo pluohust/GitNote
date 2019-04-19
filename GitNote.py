@@ -13,7 +13,7 @@ import mistune
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html
-import json
+import json, pdfkit
 
 movieStatus = False
 
@@ -77,6 +77,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.setAutoFillBackground(True)
         self.listfileDir = main.gitNoteNoteHome
         self.viewfileName = ""
+        self.viewTexts = ""
         self.plainTextEdit_markdown.hide()
         self.plainTextEdit_markdown.setTabStopDistance(QFontMetricsF(self.plainTextEdit_markdown.font()).width(' ')*4)
         self.saveStatus = False
@@ -115,6 +116,21 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         toolmenu.addAction("暗黑主题", self.blackTheme)
         self.toolButton_config.setMenu(toolmenu)
         self.toolButton_config.setPopupMode(QToolButton.MenuButtonPopup)
+        # 转换
+        convertico = QIcon(os.path.join(os.path.dirname(__file__), "convert.ico"))
+        self.toolButton_functions.setIcon(convertico)
+        convertmenu = QMenu()
+        convertmenu.addAction("另存为pdf文件", self.viewToPdf)
+        self.toolButton_functions.setMenu(convertmenu)
+    
+    def viewToPdf(self):
+        filename, filetype = QFileDialog.getSaveFileName(self, "文件保存", str(pathlib.Path.home()), "PdfFiles (*.pdf)")
+        if filename != "":
+            if filename[-4:] != '.pdf':
+                filename = filename + '.pdf'
+            markdown = mistune.Markdown()
+            pdfkit.from_string('<head><meta charset="UTF-8"></head>' + markdown(self.showRealPictures(self.viewTexts)), filename)
+            print(markdown(self.showRealPictures(self.viewTexts)))
 
     def initInterface(self):
         self.interfacedata = {'theme': 'white'}
@@ -490,7 +506,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         
     def textChangedEdit(self):
         self.viewTexts = self.plainTextEdit_markdown.toPlainText()
-        therealmd = self.showRealPictures(self.viewTexts)
+        #therealmd = self.showRealPictures(self.viewTexts)
         #self.textEdit_show.clear()
         #self.textEdit_show.setText(markdown2.markdown(therealmd))
         #self.textEdit_show.setHtml(markdown2.markdown(therealmd))

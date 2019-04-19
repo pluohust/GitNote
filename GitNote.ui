@@ -191,6 +191,22 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QToolButton" name="toolButton_functions">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::MenuButtonPopup</enum>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -231,7 +247,6 @@
   <tabstop>textEdit_show</tabstop>
   <tabstop>pushButton_update</tabstop>
   <tabstop>pushButton_save</tabstop>
-  <tabstop>pushButton_addpicture</tabstop>
  </tabstops>
  <resources/>
  <connections/>
