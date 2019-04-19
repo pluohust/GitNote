@@ -10,7 +10,7 @@
 sudo apt install wkhtmltopdf
 或者
 yum install wkhtmltopdf
-Windows下直接下载安装文件安装（https://wkhtmltopdf.org/downloads.html）
+Windows下直接下载安装文件安装（https://wkhtmltopdf.org/downloads.html），将可执行文件的路径加入系统环境变量path中
 ```
 
 ```
