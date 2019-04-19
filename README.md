@@ -10,6 +10,7 @@
 sudo apt install wkhtmltopdf
 或者
 yum install wkhtmltopdf
+Windows下直接下载安装文件安装（https://wkhtmltopdf.org/downloads.html）
 ```
 
 ```
