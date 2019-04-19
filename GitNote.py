@@ -127,7 +127,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         filename, filetype = QFileDialog.getSaveFileName(self, "文件保存", str(pathlib.Path.home()), "PdfFiles (*.pdf)")
         if filename != "":
             if filename[-4:] != '.pdf':
+                oldfilename = filename
                 filename = filename + '.pdf'
+                if os.path.exists(filename) and not os.path.exists(oldfilename):
+                    replay = QMessageBox.question(self, "文件覆盖警告", "文件"+os.path.basename(filename)+"已存在，确定覆盖？", QMessageBox.Yes, QMessageBox.No)
+                    if replay == QMessageBox.No:
+                        return
             markdown = mistune.Markdown()
             pdfkit.from_string('<head><meta charset="UTF-8"></head>' + markdown(self.showRealPictures(self.viewTexts)), filename)
             print(markdown(self.showRealPictures(self.viewTexts)))
