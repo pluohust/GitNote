@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog, QInputDialog
-from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor
+from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor, QFont
 from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer
 import GitNoteUi
 import main
@@ -111,6 +111,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.movietimer = QTimer(self)
         self.movietimer.start(500)
         self.movietimer.timeout.connect(self.movieTimeout)
+        # 配置
+        #configicon = QIcon()
+        #configicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "config.ico")), QIcon.Normal, QIcon.Off)
+        #self.pushButton_config.setIcon(configicon)
     
     def movieTimeout(self):
         global movieStatus
