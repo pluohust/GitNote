@@ -21,6 +21,7 @@ pip3 install pyqt5 gitpython mistune pdfkit
 	- 克隆
 	- 更新，包括自动pull和push
 	- markdown查看和编辑
+	- 另存为pdf文件
 
 ### 其他功能开发中...
 
