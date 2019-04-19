@@ -128,6 +128,18 @@
        <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="textElideMode">
+        <enum>Qt::ElideMiddle</enum>
+       </property>
+       <property name="flow">
+        <enum>QListView::LeftToRight</enum>
+       </property>
        <property name="isWrapping" stdset="0">
         <bool>true</bool>
        </property>
@@ -135,7 +147,10 @@
         <enum>QListView::Adjust</enum>
        </property>
        <property name="spacing">
-        <number>10</number>
+        <number>5</number>
+       </property>
+       <property name="viewMode">
+        <enum>QListView::ListMode</enum>
        </property>
       </widget>
      </widget>

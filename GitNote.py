@@ -3,7 +3,7 @@
 
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog, QToolButton, QFontDialog, QColorDialog
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor, QFont
-from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer
+from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer, QSize
 import GitNoteUi
 import main
 import git
@@ -157,14 +157,14 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.dirIcon = QIcon(os.path.join(os.path.dirname(__file__),"blackdir.ico"))
         self.addTopDirs()
         pBack = self.palette()
-        pBack.setColor(self.backgroundRole(), QColor(54, 54, 54))
+        pBack.setColor(self.backgroundRole(), QColor(51, 51, 51))
         self.setPalette(pBack)
-        self.treeWidget_tree.setStyleSheet('background-color: rgb(54, 54, 54);color: rgb(247, 247, 247);')
-        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(39, 39, 39);color: rgb(247, 247, 247);}"
+        self.treeWidget_tree.setStyleSheet('background-color: rgb(51, 51, 51);color: rgb(247, 247, 247);')
+        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(37, 37, 38);color: rgb(247, 247, 247);}"
         "QListWidget::item { border-bottom: 0.5px dotted white; margin-bottom:10px;}")
-        self.lineEdit_title.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
-        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
-        self.textEdit_show.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
+        self.lineEdit_title.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
+        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
+        self.textEdit_show.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
         if self.interfacedata['theme'] != 'black':
             self.interfacedata['theme'] = 'black'
             with open(self.configfile, 'w') as f:
@@ -186,17 +186,17 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.setUpdateBack()
 
     def closeEvent(self, event):
-        # if self.saveStatus:
-        #     unsavereturn = self.saveNote(False)
-        #     if not unsavereturn:
-        #         replay = QMessageBox.question(self, "未保存警告", "有未保存的未命名笔记，确定退出？", QMessageBox.Yes, QMessageBox.No)
-        #         if replay == QMessageBox.Yes:
-        #             event.accept()
-        #             return
-        #         elif replay == QMessageBox.No:
-        #             event.ignore()
-        #             return
-        self.saveNote(True)
+        if self.saveStatus:
+            unsavereturn = self.saveNote(False)
+            if not unsavereturn:
+                replay = QMessageBox.question(self, "未保存警告", "有未保存的未命名笔记，确定退出？", QMessageBox.Yes, QMessageBox.No)
+                if replay == QMessageBox.Yes:
+                    event.accept()
+                    return
+                elif replay == QMessageBox.No:
+                    event.ignore()
+                    return
+        #self.saveNote(True)
         event.accept()
     
     def keyPressEvent(self, event):
@@ -661,7 +661,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             return
         self.fileList = self.traverseDir(fileDir)
         for eachone in self.fileList:
-            self.listWidget_list.addItem(eachone[0])
+            tmpitem = QListWidgetItem(eachone[0])
+            #if len(eachone[2]) > 1:
+            #    tmpitem.setIcon(QIcon(eachone[2]))
+            #tmpitem.setTextAlignment(Qt.AlignLeft)
+            #tmpitem.setSizeHint(QSize(150, 100))
+            self.listWidget_list.addItem(tmpitem)
     
     def traverseDir(self, filepath):
         files = os.listdir(filepath)
@@ -672,10 +677,27 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 tmpfileinfo = []
                 tmpfileinfo.append(eachone[:-3] + "\n" + self.read20words(eachone_d))
                 tmpfileinfo.append(os.path.getmtime(eachone_d))
+                #tmpfileinfo.append(self.addPictureToList(eachone_d))
                 fileList.append(tmpfileinfo)
         if len(fileList) > 1:
             fileList.sort(key=operator.itemgetter(1), reverse=True)
         return fileList
+    
+    def addPictureToList(self, filepath):
+        returnStr = " "
+        readHandle = open(filepath, "r", encoding='UTF-8')
+        while True:
+            oneline = readHandle.readline()
+            if oneline:
+                if "![](" in oneline and ")" in oneline.split("![](")[1]:
+                    shotfile = (oneline.split("![](")[1]).split(")")[0]
+                    realfile = os.path.join(self.listfileDir, shotfile)
+                    if os.path.exists(realfile):
+                        returnStr = realfile
+            else:
+                break
+        readHandle.close()
+        return returnStr
     
     def read20words(self, filepath):
         returnStr = ""

@@ -16,6 +16,6 @@ pip3 install pyqt5 gitpython mistune
 ### 其他功能开发中...
 
 以下是一些现有功能截图
-![](pictures/gitnote-9.png)
+![](pictures/gitnote-11.png)
 
-![](pictures/gitnote-10.png)
+![](pictures/gitnote-12.png)
