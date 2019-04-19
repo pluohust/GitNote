@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
      <item>
       <widget class="QPushButton" name="pushButton_update">
        <property name="text">
@@ -51,6 +51,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QToolButton" name="toolButton_config">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -71,7 +78,7 @@
       <widget class="QTreeWidget" name="treeWidget_tree">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>10</width>
          <height>0</height>
         </size>
        </property>
@@ -83,13 +90,13 @@
        </property>
        <property name="sizeIncrement">
         <size>
-         <width>250</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
        <property name="baseSize">
         <size>
-         <width>250</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -108,7 +115,7 @@
       <widget class="QListWidget" name="listWidget_list">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>10</width>
          <height>0</height>
         </size>
        </property>

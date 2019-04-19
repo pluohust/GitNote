@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog, QInputDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QTreeWidgetItem, QListWidgetItem, QMenu, QInputDialog, QMessageBox, QFileDialog, QToolButton, QFontDialog, QColorDialog
 from PyQt5.QtGui import QIcon, QColor, QBrush, QPalette, QColor, QFontMetricsF, QPixmap, QMovie, QTextCursor, QFont
 from PyQt5.QtCore import Qt, QByteArray, QThread, QTimer
 import GitNoteUi
@@ -13,6 +13,7 @@ import mistune
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import html
+import json
 
 movieStatus = False
 
@@ -63,24 +64,17 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
     def initUi(self):
         if not main.gitExist:
             self.mycloneGit()
+        # 界面配置
+        self.configfile = os.path.join(main.gitNoteHome, "config.json")
+        self.initInterface()
         self.pushButton_update.clicked.connect(self.myupdateGit)
-        self.dirIcon = QIcon(os.path.join(os.path.dirname(__file__),"dir.ico"))
-        self.addTopDirs()
         self.treeWidget_tree.clicked.connect(self.onTreeClicked)
         self.treeWidget_tree.customContextMenuRequested.connect(self.menuTreeContextClicked)
-        self.listWidget_list.setStyleSheet(
-        "QListWidget::item { border-bottom: 0.5px dotted blue; margin-bottom:10px;}"
-        "QListWidget::item:!selected{}"  
-        "QListWidget::item:selected:active{background:#FFFFFF;color:#19649F;border-width:-1;}"  
-        "QListWidget::item:selected{background:#FFFFFF;color:#19649F;}")
         self.listWidget_list.clicked.connect(self.clickedListView)
         self.listWidget_list.customContextMenuRequested.connect(self.menuListContextClicked)
         #self.treeWidget_tree.addTopLevelItem(root)
         # set window background color
         self.setAutoFillBackground(True)
-        pBack = self.palette()
-        pBack.setColor(self.backgroundRole(), QColor(79, 79, 79))
-        self.setPalette(pBack)
         self.listfileDir = main.gitNoteNoteHome
         self.viewfileName = ""
         self.plainTextEdit_markdown.hide()
@@ -112,10 +106,79 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.movietimer.start(500)
         self.movietimer.timeout.connect(self.movieTimeout)
         # 配置
-        #configicon = QIcon()
-        #configicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "config.ico")), QIcon.Normal, QIcon.Off)
-        #self.pushButton_config.setIcon(configicon)
+        configicon = QIcon()
+        configicon.addPixmap(QPixmap(os.path.join(os.path.dirname(__file__), "config.ico")), QIcon.Normal, QIcon.Off)
+        self.toolButton_config.setIcon(configicon)
+        toolmenu = QMenu()
+        toolmenu.addAction("设置字体", self.setFont)
+        toolmenu.addAction("默认主题", self.whiteTheme)
+        toolmenu.addAction("暗黑主题", self.blackTheme)
+        self.toolButton_config.setMenu(toolmenu)
+        self.toolButton_config.setPopupMode(QToolButton.MenuButtonPopup)
+
+    def initInterface(self):
+        self.interfacedata = {'theme': 'white'}
+        if not os.path.exists(self.configfile):
+            self.whiteTheme()
+            return
+        with open(self.configfile, 'r') as f:
+            self.interfacedata = json.load(f)
+        if 'theme' in self.interfacedata and self.interfacedata['theme'] == 'black':
+            self.blackTheme()
+        else:
+            self.whiteTheme()
+        if 'font' in self.interfacedata:
+            font = QFont()
+            font.fromString(self.interfacedata['font'])
+            self.plainTextEdit_markdown.setFont(font)
+            self.textEdit_show.setFont(font)
+
+    def whiteTheme(self):
+        self.dirIcon = QIcon(os.path.join(os.path.dirname(__file__),"dir.ico"))
+        self.addTopDirs()
+        pBack = self.palette()
+        pBack.setColor(self.backgroundRole(), QColor(239, 235, 231))
+        self.setPalette(pBack)
+        self.treeWidget_tree.setStyleSheet('background-color: rgb(255, 255, 255);color: rgb(0, 0, 0)')
+        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);}"
+        "QListWidget::item { border-bottom: 0.5px dotted black; margin-bottom:10px;}"
+        "QListWidget::item:!selected{}"  
+        "QListWidget::item:selected:active{background:#FFFFFF;color:#19649F;border-width:-1;}"  
+        "QListWidget::item:selected{background:#FFFFFF;color:#19649F;}")
+        self.lineEdit_title.setStyleSheet('background-color: rgb(255, 255, 255);color: rgb(0, 0, 0)')
+        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(255, 255, 255);color: rgb(0, 0, 0)')
+        self.textEdit_show.setStyleSheet('background-color: rgb(255, 255, 255);color: rgb(0, 0, 0)')
+        if self.interfacedata['theme'] != 'white':
+            self.interfacedata['theme'] = 'white'
+            with open(self.configfile, 'w') as f:
+                json.dump(self.interfacedata, f)
     
+    def blackTheme(self):
+        self.dirIcon = QIcon(os.path.join(os.path.dirname(__file__),"blackdir.ico"))
+        self.addTopDirs()
+        pBack = self.palette()
+        pBack.setColor(self.backgroundRole(), QColor(54, 54, 54))
+        self.setPalette(pBack)
+        self.treeWidget_tree.setStyleSheet('background-color: rgb(54, 54, 54);color: rgb(247, 247, 247);')
+        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(39, 39, 39);color: rgb(247, 247, 247);}"
+        "QListWidget::item { border-bottom: 0.5px dotted white; margin-bottom:10px;}")
+        self.lineEdit_title.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
+        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
+        self.textEdit_show.setStyleSheet('background-color: rgb(39, 39, 39);color: rgb(247, 247, 247)')
+        if self.interfacedata['theme'] != 'black':
+            self.interfacedata['theme'] = 'black'
+            with open(self.configfile, 'w') as f:
+                json.dump(self.interfacedata, f)
+
+    def setFont(self):
+        font, ok = QFontDialog.getFont()
+        if ok:
+            self.plainTextEdit_markdown.setFont(font)
+            self.textEdit_show.setFont(font)
+            self.interfacedata['font'] = font.toString()
+            with open(self.configfile, 'w') as f:
+                json.dump(self.interfacedata, f)
+
     def movieTimeout(self):
         global movieStatus
         if movieStatus:
@@ -123,16 +186,17 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.setUpdateBack()
 
     def closeEvent(self, event):
-        if self.saveStatus:
-            unsavereturn = self.saveNote(False)
-            if not unsavereturn:
-                replay = QMessageBox.question(self, "未保存警告", "有未保存的未命名笔记，确定退出？", QMessageBox.Yes, QMessageBox.No)
-                if replay == QMessageBox.Yes:
-                    event.accept()
-                    return
-                elif replay == QMessageBox.No:
-                    event.ignore()
-                    return
+        # if self.saveStatus:
+        #     unsavereturn = self.saveNote(False)
+        #     if not unsavereturn:
+        #         replay = QMessageBox.question(self, "未保存警告", "有未保存的未命名笔记，确定退出？", QMessageBox.Yes, QMessageBox.No)
+        #         if replay == QMessageBox.Yes:
+        #             event.accept()
+        #             return
+        #         elif replay == QMessageBox.No:
+        #             event.ignore()
+        #             return
+        self.saveNote(True)
         event.accept()
     
     def keyPressEvent(self, event):
@@ -479,7 +543,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.lineEdit_title.setReadOnly(True)
         if len(self.viewfileName) > 1:
             if not self.createStatus and self.oldTexts == self.viewTexts:
-                return
+                return True
             tmpf = open(self.viewfileName, "w", encoding='UTF-8')
             tmpf.write(self.viewTexts)
             tmpf.close()
