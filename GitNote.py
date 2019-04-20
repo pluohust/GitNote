@@ -124,6 +124,8 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.toolButton_functions.setMenu(convertmenu)
     
     def viewToPdf(self):
+        if not self.pushButton_save.isEnabled() and not self.pushButton_addpicture.isEnabled():
+            return
         filename, filetype = QFileDialog.getSaveFileName(self, "文件保存", str(pathlib.Path.home()), "PdfFiles (*.pdf)")
         if filename != "":
             if filename[-4:] != '.pdf':
@@ -180,12 +182,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         pBack = self.palette()
         pBack.setColor(self.backgroundRole(), QColor(51, 51, 51))
         self.setPalette(pBack)
-        self.treeWidget_tree.setStyleSheet('background-color: rgb(51, 51, 51);color: rgb(247, 247, 247);')
-        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(37, 37, 38);color: rgb(247, 247, 247);}"
+        self.treeWidget_tree.setStyleSheet('background-color: rgb(51, 51, 51);color: rgb(200, 200, 200);')
+        self.listWidget_list.setStyleSheet("QListWidget{background-color: rgb(37, 37, 38);color: rgb(200, 200, 200);}"
         "QListWidget::item { border-bottom: 0.5px dotted white; margin-bottom:10px;}")
-        self.lineEdit_title.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
-        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
-        self.textEdit_show.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(247, 247, 247)')
+        self.lineEdit_title.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(200, 200, 200)')
+        self.plainTextEdit_markdown.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(200, 200, 200)')
+        self.textEdit_show.setStyleSheet('background-color: rgb(30, 30, 30);color: rgb(200, 200, 200)')
         if self.interfacedata['theme'] != 'black':
             self.interfacedata['theme'] = 'black'
             with open(self.configfile, 'w') as f:
