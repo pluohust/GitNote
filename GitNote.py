@@ -228,7 +228,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                 self.pushButton_save.clicked.emit()
     
     def choosePictures(self):
-        pictures, ok = QFileDialog.getOpenFileNames(self, "选取图片", str(pathlib.Path.home()), "Picture Files (*.png | *.jpg | *.jpeg | *.gif | *.ico")
+        pictures, ok = QFileDialog.getOpenFileNames(self, "选取图片", str(pathlib.Path.home()), "Picture Files (*.png | *.jpg | *.jpeg | *.gif | *.ico | *.svg)")
         for eachfile in pictures:
             basenamewith = os.path.basename(eachfile)
             basename, suffix = os.path.splitext(basenamewith)
