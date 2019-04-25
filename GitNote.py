@@ -502,7 +502,11 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         #self.textEdit_show.setHtml(markdown2.markdown(self.showRealPictures(self.viewTexts)))
         #renderer = HighlightRenderer()
         markdown = mistune.Markdown()
-        self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
+        markdownTxt = markdown(self.showRealPictures(self.viewTexts))
+        markdownTxt = markdownTxt.replace("\n<", "$&$&$&").strip()
+        markdownTxt = markdownTxt.replace("\n", r"<br>")
+        markdownTxt = markdownTxt.replace("$&$&$&", "\n<")
+        self.textEdit_show.setHtml(markdownTxt)
         #print(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.Start)
     
@@ -528,7 +532,13 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         #renderer = HighlightRenderer()
         #markdown = mistune.Markdown(renderer=renderer)
         markdown = mistune.Markdown()
-        self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
+        markdownTxt = markdown(self.showRealPictures(self.viewTexts))
+        markdownTxt = markdownTxt.replace("\n<", "$&$&$&").strip()
+        markdownTxt = markdownTxt.replace("\n", r"<br>")
+        markdownTxt = markdownTxt.replace("$&$&$&", "\n<")
+        self.textEdit_show.setHtml(markdownTxt)
+        #markdown = mistune.Markdown()
+        #self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.End)
 
     
