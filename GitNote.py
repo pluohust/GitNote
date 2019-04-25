@@ -137,7 +137,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
                         return
             markdown = mistune.Markdown()
             pdfkit.from_string('<head><meta charset="UTF-8"></head>' + markdown(self.showRealPictures(self.viewTexts)), filename)
-            print(markdown(self.showRealPictures(self.viewTexts)))
+            #print(markdown(self.showRealPictures(self.viewTexts)))
 
     def initInterface(self):
         self.interfacedata = {'theme': 'white'}
@@ -443,6 +443,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
             self.updateListView(self.listfileDir)
             self.treemenu = QMenu()
             self.treemenu.addAction("新建笔记", self.createNote)
+            self.treemenu.addAction("新建日记", self.createDiaryNote)
             self.treemenu.addAction("新建文件夹", self.createDir)
             self.treemenu.addAction("删除文件夹", self.deleteDir)
             self.treemenu.addAction("移动文件夹", self.moveDirToDir)
@@ -473,6 +474,12 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.lineEdit_title.setFocus()
         self.oldTexts = ""
         self.showTextDir = self.listfileDir
+
+    def createDiaryNote(self):
+        today = str(time.strftime("%Y-%m-%d", time.localtime()))
+        self.createNote()
+        self.lineEdit_title.setText(today)
+        self.plainTextEdit_markdown.setFocus()
     
     def clickedListView(self, qmodelindex):
         item = self.listWidget_list.currentItem()
@@ -486,7 +493,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.viewfileName = os.path.join(self.listfileDir, filename)
         if self.viewfileName[-3:] != ".md":
             self.viewfileName = self.viewfileName + ".md"
-        self.lineEdit_title.setText(os.path.splitext(filename)[0])
+        self.lineEdit_title.setText(filename)
         tmpf = open(self.viewfileName, "r", encoding='UTF-8')
         self.viewTexts = tmpf.read()
         tmpf.close()
@@ -496,6 +503,7 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         #renderer = HighlightRenderer()
         markdown = mistune.Markdown()
         self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
+        #print(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.Start)
     
     def showRealPictures(self, inputtext):
