@@ -10,21 +10,9 @@ import git
 import os, getpass, threading, time, datetime, operator, shutil
 import pathlib
 import mistune
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import html
 import json, pdfkit
 
 movieStatus = False
-
-class HighlightRenderer(mistune.Renderer):
-    def block_code(self, code, lang):
-        if not lang:
-            return '\n<pre><code>%s</code></pre>\n' % \
-                mistune.escape(code)
-        lexer = get_lexer_by_name(lang, stripall=True)
-        formatter = html.HtmlFormatter()
-        return highlight(code, lexer, formatter)
 
 class CloneThread(QThread):
     def __init__(self):
@@ -500,14 +488,16 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         self.showTextDir = self.listfileDir
         #self.textEdit_show.setText(markdown2.markdown(self.showRealPictures(self.viewTexts)))
         #self.textEdit_show.setHtml(markdown2.markdown(self.showRealPictures(self.viewTexts)))
-        #renderer = HighlightRenderer()
         markdown = mistune.Markdown()
         markdownTxt = markdown(self.showRealPictures(self.viewTexts))
         markdownTxt = markdownTxt.replace("\n<", "$&$&$&").strip()
         markdownTxt = markdownTxt.replace("\n", r"<br>")
         markdownTxt = markdownTxt.replace("$&$&$&", "\n<")
+        if self.interfacedata['theme'] == 'black':
+            markdownTxt = markdownTxt.replace("<code>", r'<code style="color:rgb(0,215,215)">')
+        else:
+            markdownTxt = markdownTxt.replace("<code>", r'<code style="color:rgb(0,0,255)">')
         self.textEdit_show.setHtml(markdownTxt)
-        #print(markdown(self.showRealPictures(self.viewTexts)))
         self.textEdit_show.moveCursor(QTextCursor.Start)
     
     def showRealPictures(self, inputtext):
