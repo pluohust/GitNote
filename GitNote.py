@@ -526,6 +526,10 @@ class GitNote(QWidget, GitNoteUi.Ui_Form_note):
         markdownTxt = markdownTxt.replace("\n<", "$&$&$&").strip()
         markdownTxt = markdownTxt.replace("\n", r"<br>")
         markdownTxt = markdownTxt.replace("$&$&$&", "\n<")
+        if self.interfacedata['theme'] == 'black':
+            markdownTxt = markdownTxt.replace("<code>", r'<code style="color:rgb(0,215,215)">')
+        else:
+            markdownTxt = markdownTxt.replace("<code>", r'<code style="color:rgb(0,0,255)">')
         self.textEdit_show.setHtml(markdownTxt)
         #markdown = mistune.Markdown()
         #self.textEdit_show.setHtml(markdown(self.showRealPictures(self.viewTexts)))
